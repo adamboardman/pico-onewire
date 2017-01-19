@@ -10,7 +10,9 @@
 #include "MicroBitMocks.h"
 
 #else
+
 #include "MicroBit.h"
+
 #endif
 
 std::vector<rom_address_t> found_addresses;
@@ -53,7 +55,6 @@ bool OneWire::onewire_reset() {
 }
 
 void OneWire::onewire_bit_out(bool bit_data) {
-//    uBit.serial.printf(bit_data ? "1" : "0");
     _datapin.output();
     __disable_irq();
     _datapin.write(0);
@@ -70,10 +71,10 @@ void OneWire::onewire_bit_out(bool bit_data) {
     }
 }
 
-void OneWire::onewire_byte_out(uint8_t data) { // output data character (least sig bit first).
+void OneWire::onewire_byte_out(uint8_t data) {
     int n;
     for (n = 0; n < 8; n++) {
-        onewire_bit_out(data & 0x01);
+        onewire_bit_out((bool) (data & 0x01));
         data = data >> 1; // now the next bit is in the least sig bit position.
     }
 }
@@ -86,20 +87,19 @@ bool OneWire::onewire_bit_in() {
     wait_us(3);                 // DXP modified from 5 (spec 1-15us)
     _datapin.input();
     wait_us(3);                // DXP modified from 5 to 10 this broke microbit timing (spec read within 15us)
-    answer = _datapin.read();
+    answer = (bool) _datapin.read();
     __enable_irq();
     wait_us(45);                // DXP modified from 50 to 45, but Arduino uses 53?
-//    uBit.serial.printf(answer ? "[1]" : "[0]");
     return answer;
 }
 
-uint8_t OneWire::onewire_byte_in() { // read byte, least sig byte first
+uint8_t OneWire::onewire_byte_in() {
     uint8_t answer = 0x00;
     int i;
     for (i = 0; i < 8; i++) {
         answer = answer >> 1; // shift over to make room for the next bit
         if (onewire_bit_in())
-            answer = answer | 0x80; // if the data port is high, make this bit a 1
+            answer = (uint8_t) (answer | 0x80); // if the data port is high, make this bit a 1
     }
     return answer;
 }
@@ -107,21 +107,21 @@ uint8_t OneWire::onewire_byte_in() { // read byte, least sig byte first
 int OneWire::findAllDevicesOnBus() {
     while (searchRomFindNext()) {
     }
-    return found_addresses.size();
+    return (int) found_addresses.size();
 }
 
-rom_address_t OneWire::addressFromHex(const char *thermId) {
-    rom_address_t address;
+rom_address_t OneWire::addressFromHex(const char *hexAddress) {
+    rom_address_t address = rom_address_t();
     for (uint8_t i = 0; i < sizeof(address.rom); i++) {
         char buffer[3];
-        strncpy(buffer, &thermId[i * 2], 2);
+        strncpy(buffer, &hexAddress[i * 2], 2);
         buffer[2] = '\0';
         address.rom[i] = (uint8_t) strtol(buffer, NULL, 16);
     }
     return address;
 }
 
-rom_address_t OneWire::getROM(int index) {
+rom_address_t &OneWire::getAddress(int index) {
     return found_addresses[index];
 }
 
@@ -139,7 +139,7 @@ void OneWire::singleDeviceReadROM(rom_address_t &address) {
     if (!onewire_reset()) {
         return;
     } else {
-        onewire_byte_out(ReadROMCommand); //Read ROM command
+        onewire_byte_out(ReadROMCommand);
         for (int bit_index = 0; bit_index < 64; bit_index++) {
             bool bit = onewire_bit_in();
             bitWrite((uint8_t &) address.rom[bit_index / 8], (bit_index % 8), bit);
@@ -219,18 +219,18 @@ bool OneWire::searchRomFindNext() {
                             uBit.serial.printf("failed crc\r\n");
                             return false;
                         }
-                        rom_address_t *address = new rom_address_t;
+                        rom_address_t address;
                         for (byte_counter = 0; byte_counter < 8; byte_counter++) {
-                            address->rom[byte_counter] = DS1820_search_ROM[byte_counter];
+                            address.rom[byte_counter] = DS1820_search_ROM[byte_counter];
                         }
-                        found_addresses.push_back(*address);
+                        found_addresses.push_back(address);
 
                         return true;
                     } else {                    //Otherwise, check if ROM is already known
                         bool equal = true;
                         uint8_t *ROM_compare = found_addresses[i].rom;
 
-                        for (byte_counter = 0; byte_counter < 8 && equal; byte_counter++) {
+                        for (byte_counter = 0; (byte_counter < 8) && equal; byte_counter++) {
                             if (ROM_compare[byte_counter] != DS1820_search_ROM[byte_counter])
                                 equal = false;
                         }
@@ -287,24 +287,24 @@ uint8_t OneWire::CRC_byte(uint8_t _CRC, uint8_t byte) {
             // DATA ^ LSB CRC = 1
             _CRC = _CRC >> 1;
             // Set the MSB to 1
-            _CRC = _CRC | 0x80;
+            _CRC = (uint8_t) (_CRC | 0x80);
             // Check bit 3
             if (_CRC & 0x04) {
-                _CRC = _CRC & 0xFB; // Bit 3 is set, so clear it
+                _CRC = (uint8_t) (_CRC & 0xFB); // Bit 3 is set, so clear it
             } else {
-                _CRC = _CRC | 0x04; // Bit 3 is clear, so set it
+                _CRC = (uint8_t) (_CRC | 0x04); // Bit 3 is clear, so set it
             }
             // Check bit 4
             if (_CRC & 0x08) {
-                _CRC = _CRC & 0xF7; // Bit 4 is set, so clear it
+                _CRC = (uint8_t) (_CRC & 0xF7); // Bit 4 is set, so clear it
             } else {
-                _CRC = _CRC | 0x08; // Bit 4 is clear, so set it
+                _CRC = (uint8_t) (_CRC | 0x08); // Bit 4 is clear, so set it
             }
         } else {
             // DATA ^ LSB CRC = 0
             _CRC = _CRC >> 1;
             // clear MSB
-            _CRC = _CRC & 0x7F;
+            _CRC = (uint8_t) (_CRC & 0x7F);
             // No need to check bits, with DATA ^ LSB CRC = 0, they will remain unchanged
         }
         byte = byte >> 1;
@@ -321,7 +321,7 @@ int OneWire::convertTemperature(rom_address_t &address, bool wait, bool all) {
     else {
         match_ROM(address);
         if ((FAMILY_CODE == FAMILY_CODE_DS18B20) || (FAMILY_CODE == FAMILY_CODE_DS1822)) {
-            resolution = RAM[4] & 0x60;
+            resolution = (uint8_t) (RAM[4] & 0x60);
             if (resolution == 0x00) // 9 bits
                 delay_time = 94;
             if (resolution == 0x20) // 10 bits
@@ -337,9 +337,9 @@ int OneWire::convertTemperature(rom_address_t &address, bool wait, bool all) {
     onewire_byte_out(ConvertTempCommand);  // perform temperature conversion
     if (_parasite_power) {
         if (_power_mosfet) {
-            _parasitepin = _power_polarity;     // Parasite power strong pullup
+            _parasitepin.write(_power_polarity);     // Parasite power strong pullup
             wait_ms(delay_time);
-            _parasitepin = !_power_polarity;
+            _parasitepin.write(!_power_polarity);
             delay_time = 0;
         } else {
             _datapin.output();
@@ -374,18 +374,20 @@ bool OneWire::setResolution(rom_address_t &address, unsigned int resolution) {
             resolution = resolution - 9;
             if (resolution < 4) {
                 resolution = resolution << 5; // align the bits
-                RAM[4] = (RAM[4] & 0x60) | resolution; // mask out old data, insert new
+                RAM[4] = (uint8_t) ((RAM[4] & 0x60) | resolution); // mask out old data, insert new
                 writeScratchPad(address, (RAM[2] << 8) + RAM[3]);
                 answer = true;
             }
+            break;
+        default:
             break;
     }
     return answer;
 }
 
 void OneWire::writeScratchPad(rom_address_t &address, int data) {
-    RAM[3] = data;
-    RAM[2] = data >> 8;
+    RAM[3] = (uint8_t) data;
+    RAM[2] = (uint8_t) (data >> 8);
     match_ROM(address);
     onewire_byte_out(WriteScratchPadCommand);
     onewire_byte_out(RAM[2]); // T(H)

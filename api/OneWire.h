@@ -28,15 +28,17 @@
  * THE SOFTWARE.
  */
 
-#ifndef MBED_DS1820_H
-#define MBED_DS1820_H
+#ifndef MICROBIT_ONEWIRE_H
+#define MICROBIT_ONEWIRE_H
 
 #ifdef MOCK_MICROBIT
 
 #include "MicroBitMocks.h"
 
 #else
-#include "mbed.h"
+
+#include "MicroBit.h"
+
 #endif
 
 #define FAMILY_CODE address.rom[0]
@@ -56,7 +58,6 @@ static const int MatchROMCommand = 0x55;
 static const int ReadROMCommand = 0x33;
 static const int SearchROMCommand = 0xF0;
 static const int SkipROMCommand = 0xCC;
-
 static const int WriteScratchPadCommand = 0x4E;
 struct rom_address_t {
     uint8_t rom[8];
@@ -90,13 +91,13 @@ public:
         invalid_conversion = -1000
     };
 
-    /** Create a probe object connected to the specified pins
-    *
-    * The probe might either by regular powered or parasite powered. If it is parasite
-    * powered and power_pin is set, that pin will be used to switch an external mosfet connecting
-    * data to Vdd. If it is parasite powered and the pin is not set, the regular data pin
-    * is used to supply extra power when required. This will be sufficient as long as the 
-    * number of probes is limitted.
+    /** Create a one wire bus object connected to the specified pins
+     *
+     * The bus might either by regular powered or parasite powered. If it is parasite
+     * powered and power_pin is set, that pin will be used to switch an external mosfet
+     * connecting data to Vdd. If it is parasite powered and the pin is not set, the
+     * regular data pin is used to supply extra power when required. This will be
+     * sufficient as long as the number of devices is limited.
      *
      * @param data_pin DigitalInOut pin for the data bus
      * @param power_pin DigitalOut (optional) pin to control the power MOSFET
@@ -113,29 +114,37 @@ public:
     /**
      * Finds all one wire devices and returns the count
      *
-     * @return - devices found
+     * @return - number of devices found
      */
     int findAllDevicesOnBus();
 
+    /**
+     * Get address of devices previously found
+     *
+     * @param index the index into found devices
+     * @return the address of
+     */
+    rom_address_t &getAddress(int index);
+
     /** This routine will initiate the temperature conversion within
-      * one or all DS1820 probes. 
+      * one or all temperature devices.
       *
-      * @param wait if true or parisitic power is used, waits up to 750 ms for 
-      * conversion otherwise returns immediatly.
+      * @param wait if true or parasitic power is used, waits up to 750 ms for
+      * conversion otherwise returns immediately.
       * @param address allows the function to apply to a specific device or
       * to all devices on the 1-Wire bus.
-      * @returns milliseconds untill conversion will complete.
+      * @returns milliseconds until conversion will complete.
       */
     int convertTemperature(rom_address_t &address, bool wait, bool all);
 
-    /** This function will return the probe temperature.
+    /** This function will return the temperature measured by the specific device.
       *
-      * @param convertToFarenheight, may be either 'c' or 'f'
-      * @returns temperature for that scale, or DS1820::invalid_conversion (-1000) if CRC error detected.
+      * @param convertToFarenheight whether to convert the degC to farenheight
+      * @returns temperature for that scale, or OneWire::invalid_conversion (-1000) if CRC error detected.
       */
     float temperature(rom_address_t &address, bool convertToFarenheight = false);
 
-    /** This function sets the temperature resolution for the DS18B20
+    /** This function sets the temperature resolution for supported devices
       * in the configuration register.
       *
       * @param a number between 9 and 12 to specify resolution
@@ -143,28 +152,32 @@ public:
       */
     bool setResolution(rom_address_t &address, unsigned int resolution);
 
-    //Get ROM bytes of sensor
-    rom_address_t getROM(int index);
-
-    void bitWrite(uint8_t &value, int bit, bool set);
-
     /**
      * Assuming a single device is attached, do a Read ROM
-     * @param ROM_address
+     *
+     * @param ROM_address the address will be filled into this parameter
      */
     void singleDeviceReadROM(rom_address_t &ROM_address);
 
-    bool searchRomFindNext();
-
-    static rom_address_t addressFromHex(const char *thermId);
+    /**
+     * Static utility method for easy conversion from previously stored addresses
+     *
+     * @param hexAddress the address as a human readable hex string
+     * @return
+     */
+    static rom_address_t addressFromHex(const char *hexAddress);
 
 private:
     DigitalInOut _datapin;
+    DigitalOut _parasitepin;
     bool _parasite_power;
     bool _power_mosfet;
     bool _power_polarity;
+    uint8_t RAM[9];
 
     uint8_t CRC_byte(uint8_t _CRC, uint8_t byte);
+
+    void bitWrite(uint8_t &value, int bit, bool set);
 
     bool onewire_reset();
 
@@ -184,17 +197,15 @@ private:
 
     bool RAM_checksum_error();
 
+    bool searchRomFindNext();
+
     void readScratchPad(rom_address_t &address);
 
     void writeScratchPad(rom_address_t &address, int data);
 
     bool powerSupplyAvailable(rom_address_t &address, bool all);
 
-    DigitalOut _parasitepin;
-
-    uint8_t RAM[9];
-
 };
 
 
-#endif
+#endif // MICROBIT_ONEWIRE_H

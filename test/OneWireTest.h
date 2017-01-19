@@ -160,10 +160,19 @@ public:
                 "1010010101010101"
                 "0101010101010101"
                 "0101010101010101"
+                "1010101001010101"
+                "0"
+                "0101011001100101"
+                "0110010101101001"
+                "0101100101100101"
+                "1010100101011010"
+                "1010010101010101"
+                "0101010101010101"
+                "0101010101010101"
                 "1010101001010101";
         mockReadBitsLength = strlen(mockReadBits);
-        bool found = oneWire.searchRomFindNext();
-        TS_ASSERT_EQUALS(found, true);
+        int found = oneWire.findAllDevicesOnBus();
+        TS_ASSERT_EQUALS(found, 1);
         TS_ASSERT_EQUALS(mockLastCommands.at(0), 0xF0);//Search ROM
         TS_ASSERT_EQUALS(mockLastCommands.at(1), 0x28);//ROM
         TS_ASSERT_EQUALS(mockLastCommands.at(2), 0x62);//ROM
@@ -174,7 +183,7 @@ public:
         TS_ASSERT_EQUALS(mockLastCommands.at(7), 0x00);//ROM
         TS_ASSERT_EQUALS(mockLastCommand, 0x0F);//ROM
 
-        rom_address_t ROM_address = oneWire.getROM(0);
+        rom_address_t ROM_address = oneWire.getAddress(0);
         TS_ASSERT_EQUALS(ROM_address.rom[0], 0x28);
         TS_ASSERT_EQUALS(ROM_address.rom[1], 0x62);
         TS_ASSERT_EQUALS(ROM_address.rom[2], 0x24);
@@ -217,34 +226,20 @@ public:
                 "1010010101010101"
                 "0101010101010101"
                 "0101010101010101"
+                "1010101001010101"
+                "0"
+                "0101011001100101"
+                "0110010101101001"
+                "0101100101100101"
+                "1010100101011010"
+                "1010010101010101"
+                "0101010101010101"
+                "0101010101010101"
                 "1010101001010101";
         mockReadBitsLength = strlen(mockReadBits);
 
-        bool found = oneWire.searchRomFindNext();
-        TS_ASSERT_EQUALS(found, true);
-        TS_ASSERT_EQUALS(mockLastCommands.at(0), 0xF0);//Search ROM
-        TS_ASSERT_EQUALS(mockLastCommands.at(1), 0x28);//ROM
-        TS_ASSERT_EQUALS(mockLastCommands.at(2), 0x08);//ROM
-        TS_ASSERT_EQUALS(mockLastCommands.at(3), 0x81);//ROM
-        TS_ASSERT_EQUALS(mockLastCommands.at(4), 0xFB);//ROM
-        TS_ASSERT_EQUALS(mockLastCommands.at(5), 0x07);//ROM
-        TS_ASSERT_EQUALS(mockLastCommands.at(6), 0x00);//ROM
-        TS_ASSERT_EQUALS(mockLastCommands.at(7), 0x00);//ROM
-        TS_ASSERT_EQUALS(mockLastCommand, 0x26);//ROM
-
-        rom_address_t ROM_address = oneWire.getROM(0);
-        TS_ASSERT_EQUALS(ROM_address.rom[0], 0x28);
-        TS_ASSERT_EQUALS(ROM_address.rom[1], 0x08);
-        TS_ASSERT_EQUALS(ROM_address.rom[2], 0x81);
-        TS_ASSERT_EQUALS(ROM_address.rom[3], 0xFB);
-        TS_ASSERT_EQUALS(ROM_address.rom[4], 0x07);
-        TS_ASSERT_EQUALS(ROM_address.rom[5], 0x00);
-        TS_ASSERT_EQUALS(ROM_address.rom[6], 0x00);
-        TS_ASSERT_EQUALS(ROM_address.rom[7], 0x26);
-
-        resetLastCommands();
-        found = oneWire.searchRomFindNext();
-        TS_ASSERT_EQUALS(found, true);
+        int found = oneWire.findAllDevicesOnBus();
+        TS_ASSERT_EQUALS(found, 2);
         TS_ASSERT_EQUALS(mockLastCommands.at(0), 0xF0);//Search ROM
         TS_ASSERT_EQUALS(mockLastCommands.at(1), 0x28);//ROM
         TS_ASSERT_EQUALS(mockLastCommands.at(2), 0x08);//ROM
@@ -256,15 +251,34 @@ public:
         TS_ASSERT_EQUALS(mockLastCommands.at(8), 0x26);//ROM
         TS_ASSERT_EQUALS(mockLastCommands.at(9), 0xF0);//Search ROM
         TS_ASSERT_EQUALS(mockLastCommands.at(10), 0x28);//ROM
-        TS_ASSERT_EQUALS(mockLastCommands.at(11), 0x62);//ROM
-        TS_ASSERT_EQUALS(mockLastCommands.at(12), 0x24);//ROM
-        TS_ASSERT_EQUALS(mockLastCommands.at(13), 0xC7);//ROM
-        TS_ASSERT_EQUALS(mockLastCommands.at(14), 0x03);//ROM
+        TS_ASSERT_EQUALS(mockLastCommands.at(11), 0x08);//ROM
+        TS_ASSERT_EQUALS(mockLastCommands.at(12), 0x81);//ROM
+        TS_ASSERT_EQUALS(mockLastCommands.at(13), 0xFB);//ROM
+        TS_ASSERT_EQUALS(mockLastCommands.at(14), 0x07);//ROM
         TS_ASSERT_EQUALS(mockLastCommands.at(15), 0x00);//ROM
         TS_ASSERT_EQUALS(mockLastCommands.at(16), 0x00);//ROM
+        TS_ASSERT_EQUALS(mockLastCommands.at(17), 0x26);//ROM
+        TS_ASSERT_EQUALS(mockLastCommands.at(18), 0xF0);//Search ROM
+        TS_ASSERT_EQUALS(mockLastCommands.at(19), 0x28);//ROM
+        TS_ASSERT_EQUALS(mockLastCommands.at(20), 0x62);//ROM
+        TS_ASSERT_EQUALS(mockLastCommands.at(21), 0x24);//ROM
+        TS_ASSERT_EQUALS(mockLastCommands.at(22), 0xC7);//ROM
+        TS_ASSERT_EQUALS(mockLastCommands.at(23), 0x03);//ROM
+        TS_ASSERT_EQUALS(mockLastCommands.at(24), 0x00);//ROM
+        TS_ASSERT_EQUALS(mockLastCommands.at(25), 0x00);//ROM
         TS_ASSERT_EQUALS(mockLastCommand, 0x0F);//ROM
 
-        ROM_address = oneWire.getROM(1);
+        rom_address_t ROM_address = oneWire.getAddress(0);
+        TS_ASSERT_EQUALS(ROM_address.rom[0], 0x28);
+        TS_ASSERT_EQUALS(ROM_address.rom[1], 0x08);
+        TS_ASSERT_EQUALS(ROM_address.rom[2], 0x81);
+        TS_ASSERT_EQUALS(ROM_address.rom[3], 0xFB);
+        TS_ASSERT_EQUALS(ROM_address.rom[4], 0x07);
+        TS_ASSERT_EQUALS(ROM_address.rom[5], 0x00);
+        TS_ASSERT_EQUALS(ROM_address.rom[6], 0x00);
+        TS_ASSERT_EQUALS(ROM_address.rom[7], 0x26);
+
+        ROM_address = oneWire.getAddress(1);
         TS_ASSERT_EQUALS(ROM_address.rom[0], 0x28);
         TS_ASSERT_EQUALS(ROM_address.rom[1], 0x62);
         TS_ASSERT_EQUALS(ROM_address.rom[2], 0x24);
@@ -323,7 +337,7 @@ public:
 
         oneWire.findAllDevicesOnBus();
 
-        rom_address_t ROM_address = oneWire.getROM(0);
+        rom_address_t ROM_address = oneWire.getAddress(0);
         TS_ASSERT_EQUALS(ROM_address.rom[0], 0x28);
         TS_ASSERT_EQUALS(ROM_address.rom[1], 0x08);
         TS_ASSERT_EQUALS(ROM_address.rom[2], 0x81);
@@ -333,7 +347,7 @@ public:
         TS_ASSERT_EQUALS(ROM_address.rom[6], 0x00);
         TS_ASSERT_EQUALS(ROM_address.rom[7], 0x26);
 
-        ROM_address = oneWire.getROM(1);
+        ROM_address = oneWire.getAddress(1);
         TS_ASSERT_EQUALS(ROM_address.rom[0], 0x28);
         TS_ASSERT_EQUALS(ROM_address.rom[1], 0x62);
         TS_ASSERT_EQUALS(ROM_address.rom[2], 0x24);
@@ -344,6 +358,7 @@ public:
         TS_ASSERT_EQUALS(ROM_address.rom[7], 0x0F);
 
     }
+
 private:
     OneWire oneWire;
 };

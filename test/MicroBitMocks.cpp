@@ -74,6 +74,10 @@ DigitalOut &DigitalOut::operator=(int value) {
     return *this;
 }
 
+void DigitalOut::write(int value) {
+
+}
+
 int MicroBitSerial::printf(const char *format, ...) {
     std::va_list arg;
     va_start(arg, format);

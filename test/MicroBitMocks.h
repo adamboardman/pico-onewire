@@ -54,6 +54,8 @@ public:
     DigitalOut(PinName param);
 
     DigitalOut& operator= (int value);
+
+    void write(int value);
 };
 
 void wait_us(int us);
