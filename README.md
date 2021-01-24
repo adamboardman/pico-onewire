@@ -1,10 +1,10 @@
-# micro:bit OneWire Library
+# pico-pi One_wire Library
 
 Based upon Erik Olieman's mbed DS1820 lib
 
 https://developer.mbed.org/components/DS1820/
 
-Modified timings so that it works when used on the Micro:Bit.
+Modified timings so that it works when used on the Pi Pico
 
 Added off device test code with mocks and its own cmake configuration.
 
