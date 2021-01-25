@@ -59,17 +59,14 @@ bool One_wire::reset_check_for_device() const {
 
 void One_wire::onewire_bit_out(bool bit_data) const {
 	gpio_set_dir(_data_pin, GPIO_OUT);
-	// __disable_irq();
 	gpio_put(_data_pin, false);
 	sleep_us(3);// (spec 1-15us)
 	if (bit_data) {
 		gpio_put(_data_pin, true);
-		// __enable_irq();
 		sleep_us(55);
 	} else {
 		sleep_us(60);// (spec 60-120us)
 		gpio_put(_data_pin, true);
-		// __enable_irq();
 		sleep_us(5);// allow bus to float high before next bit_out
 	}
 }
@@ -85,13 +82,11 @@ void One_wire::onewire_byte_out(uint8_t data) {
 bool One_wire::onewire_bit_in() const {
 	bool answer;
 	gpio_set_dir(_data_pin, GPIO_OUT);
-	// __disable_irq();
 	gpio_put(_data_pin, false);
 	sleep_us(3);// (spec 1-15us)
 	gpio_set_dir(_data_pin, GPIO_IN);
 	sleep_us(3);// (spec read within 15us)
 	answer = gpio_get(_data_pin);
-	// __enable_irq();
 	sleep_us(45);
 	return answer;
 }
