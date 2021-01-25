@@ -7,6 +7,8 @@
 #define GPIO_OUT 1
 #define GPIO_IN 0
 
+typedef	unsigned int uint;
+
 extern std::vector<uint8_t> mockLastCommands;
 extern uint8_t mockLastCommand;
 extern int mockReadBitPos;

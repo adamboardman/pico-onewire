@@ -1,9 +1,9 @@
-#include <catch2/catch.hpp>
+#include <catch2/catch_test_macros.hpp>
 #include <cstdarg>
 #include <cstring>
 #include <vector>
 
-#include "../api/one_wire.h"
+#include "one_wire.h"
 
 extern std::vector<rom_address_t> found_addresses;
 
