@@ -18,6 +18,16 @@ Modified API's for two stage workflow:
 
 # Usage - Temperature reading
 
+## Include library
+
+Check the module out as a submodule of your project to say: modules/pico-onewire then
+add the sub directory and link the library in your CMakeLists.txt:
+```
+add_subdirectory(modules/pico-onewire)
+
+target_link_libraries( ... pico_one_wire)
+```
+
 ## Single sensor
 
 An example main that will check for attached devices once per second, print the address and temperature.
@@ -95,7 +105,7 @@ If you plan on fixing bugs or extending the library then you must.
 Install Catch2 version 3, it might be available on your desktop linux distro,
 though possibly only an older version. Or you can download, build and install it:
 ```
-git clone  https://github.com/catchorg/Catch2.git
+git clone https://github.com/catchorg/Catch2.git
 cd Catch2
 cmake -Bbuild -H. -DBUILD_TESTING=OFF
 cmake --build build/

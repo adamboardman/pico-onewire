@@ -7,7 +7,7 @@
 
 extern std::vector<rom_address_t> found_addresses;
 
-One_wire one_wire(0);
+One_wire one_wire(0); //NOLINT
 
 void resetLastCommands() {
 	mockLastCommand = 0;
