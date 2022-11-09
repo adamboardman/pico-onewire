@@ -44,6 +44,7 @@ One_wire::~One_wire() {
 bool One_wire::reset_check_for_device() const {
 	// This will return false if no devices are present on the data bus
 	bool presence = false;
+	gpio_init(_data_pin);
 	gpio_set_dir(_data_pin, GPIO_OUT);
 	gpio_put(_data_pin, false); // bring low for 480us
 	sleep_us(480);

@@ -259,15 +259,6 @@ TEST_CASE("SearchROMSecondDevice", "[one_wire]") {
 				   "0110100101100101"
 				   "0"
 				   "0101011001100101"
-				   "0100011001010101"// Second bit is first difference, indicated with double zero's
-				   "1001010101010110"
-				   "1010011010101010"
-				   "1010100101010101"
-				   "0101010101010101"
-				   "0101010101010101"
-				   "0110100101100101"
-				   "0"
-				   "0101011001100101"
 				   "0100010101101001"// Second bit is first difference, indicated with double zero's
 				   "0101100101100101"
 				   "1010100101011010"
@@ -299,21 +290,12 @@ TEST_CASE("SearchROMSecondDevice", "[one_wire]") {
 	REQUIRE(mockLastCommands[8] == 0x26);
 	REQUIRE(mockLastCommands[9] == SearchROMCommand);
 	REQUIRE(mockLastCommands[10] == 0x28);
-	REQUIRE(mockLastCommands[11] == 0x08);
-	REQUIRE(mockLastCommands[12] == 0x81);
-	REQUIRE(mockLastCommands[13] == 0xFB);
-	REQUIRE(mockLastCommands[14] == 0x07);
+	REQUIRE(mockLastCommands[11] == 0x62);
+	REQUIRE(mockLastCommands[12] == 0x24);
+	REQUIRE(mockLastCommands[13] == 0xC7);
+	REQUIRE(mockLastCommands[14] == 0x03);
 	REQUIRE(mockLastCommands[15] == 0x00);
 	REQUIRE(mockLastCommands[16] == 0x00);
-	REQUIRE(mockLastCommands[17] == 0x26);
-	REQUIRE(mockLastCommands[18] == SearchROMCommand);
-	REQUIRE(mockLastCommands[19] == 0x28);
-	REQUIRE(mockLastCommands[20] == 0x62);
-	REQUIRE(mockLastCommands[21] == 0x24);
-	REQUIRE(mockLastCommands[22] == 0xC7);
-	REQUIRE(mockLastCommands[23] == 0x03);
-	REQUIRE(mockLastCommands[24] == 0x00);
-	REQUIRE(mockLastCommands[25] == 0x00);
 	REQUIRE(mockLastCommand == 0x0F);
 
 	rom_address_t ROM_address = One_wire::get_address(0);
@@ -345,15 +327,6 @@ TEST_CASE("ListAllAttachedDevices", "[one_wire]") {
 	//28 08 81 FB 07 00 00 26 - first
 	//28 62 24 C7 03 00 00 0F - second
 	mockReadBits = "0"
-				   "0101011001100101"
-				   "0100011001010101"// Second bit is first difference, indicated with double zero's
-				   "1001010101010110"
-				   "1010011010101010"
-				   "1010100101010101"
-				   "0101010101010101"
-				   "0101010101010101"
-				   "0110100101100101"
-				   "0"
 				   "0101011001100101"
 				   "0100011001010101"// Second bit is first difference, indicated with double zero's
 				   "1001010101010110"
