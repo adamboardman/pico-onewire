@@ -103,6 +103,9 @@ uint8_t One_wire::onewire_byte_in() {
 }
 
 int One_wire::find_and_count_devices_on_bus() {
+	found_addresses.clear();
+	_last_discrepancy = 0;	// start search from begining
+	_last_device = 0;
 	while (search_rom_find_next()) {
 	}
 	return (int) found_addresses.size();
@@ -146,105 +149,91 @@ void One_wire::single_device_read_rom(rom_address_t &rom_address) {
 }
 
 bool One_wire::search_rom_find_next() {
-	bool done_flag = false;
-	int last_discrepancy = 0;
 	uint8_t search_ROM[8] = {0, 0, 0, 0, 0, 0, 0, 0};
 
 	int discrepancy_marker, rom_bit_index;
-	bool return_value, bitA, bitB;
+	bool bitA, bitB;
 	uint8_t byte_counter, bit_mask;
 
-	return_value = false;
-	while (!done_flag) {
-		if (!reset_check_for_device()) {
-			printf("Failed to reset one wire bus\n");
-			return false;
-		} else {
-			rom_bit_index = 1;
-			discrepancy_marker = 0;
-			onewire_byte_out(SearchROMCommand);
-			byte_counter = 0;
-			bit_mask = 0x01;
-			while (rom_bit_index <= 64) {
-				bitA = onewire_bit_in();
-				bitB = onewire_bit_in();
-				if (bitA & bitB) {
-					discrepancy_marker = 0;// data read error, this should never happen
-					rom_bit_index = 0xFF;
-					printf("Data read error - no devices on bus?\r\n");
+	if (!reset_check_for_device()) {
+		printf("Failed to reset one wire bus\n");
+		return false;
+	} else {
+		if (_last_device) {
+			return false;	// all devices found
+		}
+		rom_bit_index = 1;
+		discrepancy_marker = 0;
+		onewire_byte_out(SearchROMCommand);
+		byte_counter = 0;
+		bit_mask = 0x01;
+		while (rom_bit_index <= 64) {
+			bitA = onewire_bit_in();
+			bitB = onewire_bit_in();
+			if (bitA & bitB) {
+				discrepancy_marker = 0;// data read error, this should never happen
+				rom_bit_index = 0xFF;
+				printf("Data read error - no devices on bus?\r\n");
+			} else {
+				if (bitA | bitB) {
+					// Set ROM bit to Bit_A
+					if (bitA) {
+						search_ROM[byte_counter] =
+								search_ROM[byte_counter] | bit_mask;// Set ROM bit to one
+					} else {
+						search_ROM[byte_counter] =
+								search_ROM[byte_counter] & ~bit_mask;// Set ROM bit to zero
+					}
 				} else {
-					if (bitA | bitB) {
-						// Set ROM bit to Bit_A
-						if (bitA) {
-							search_ROM[byte_counter] =
-									search_ROM[byte_counter] | bit_mask;// Set ROM bit to one
-						} else {
+					// both bits A and B are low, so there are two or more devices present
+					if (rom_bit_index == _last_discrepancy) {
+						search_ROM[byte_counter] =
+								search_ROM[byte_counter] | bit_mask;// Set ROM bit to one
+					} else {
+						if (rom_bit_index > _last_discrepancy) {
 							search_ROM[byte_counter] =
 									search_ROM[byte_counter] & ~bit_mask;// Set ROM bit to zero
-						}
-					} else {
-						// both bits A and B are low, so there are two or more devices present
-						if (rom_bit_index == last_discrepancy) {
-							search_ROM[byte_counter] =
-									search_ROM[byte_counter] | bit_mask;// Set ROM bit to one
+							discrepancy_marker = rom_bit_index;
 						} else {
-							if (rom_bit_index > last_discrepancy) {
-								search_ROM[byte_counter] =
-										search_ROM[byte_counter] & ~bit_mask;// Set ROM bit to zero
+							if ((search_ROM[byte_counter] & bit_mask) == 0x00)
 								discrepancy_marker = rom_bit_index;
-							} else {
-								if ((search_ROM[byte_counter] & bit_mask) == 0x00)
-									discrepancy_marker = rom_bit_index;
-							}
 						}
-					}
-					onewire_bit_out(search_ROM[byte_counter] & bit_mask);
-					rom_bit_index++;
-					if (bit_mask & 0x80) {
-						byte_counter++;
-						bit_mask = 0x01;
-					} else {
-						bit_mask = bit_mask << 1;
 					}
 				}
-			}
-			last_discrepancy = discrepancy_marker;
-			if (rom_bit_index != 0xFF) {
-				uint8_t i = 0;
-				while (true) {
-					if (i >= found_addresses.size()) {       //End of list, or empty list
-						if (rom_checksum_error(search_ROM)) {// Check the CRC
-							printf("failed crc\r\n");
-							return false;
-						}
-						rom_address_t address{};
-						for (byte_counter = 0; byte_counter < 8; byte_counter++) {
-							address.rom[byte_counter] = search_ROM[byte_counter];
-						}
-						found_addresses.push_back(address);
-
-						return true;
-					} else {//Otherwise, check if ROM is already known
-						bool equal = true;
-						uint8_t *ROM_compare = found_addresses[i].rom;
-
-						for (byte_counter = 0; (byte_counter < 8) && equal; byte_counter++) {
-							if (ROM_compare[byte_counter] != search_ROM[byte_counter]) {
-								equal = false;
-							}
-						}
-						if (equal)
-							break;
-						else
-							i++;
-					}
+				onewire_bit_out(search_ROM[byte_counter] & bit_mask);
+				rom_bit_index++;
+				if (bit_mask & 0x80) {
+					byte_counter++;
+					bit_mask = 0x01;
+				} else {
+					bit_mask = bit_mask << 1;
 				}
 			}
 		}
-		if (last_discrepancy == 0)
-			done_flag = true;
+		_last_discrepancy = discrepancy_marker;
+		if (rom_bit_index != 0xFF) {
+			#ifdef _LIST_ROMS
+			printf ("Found %02x%02x%02x%02x%02x%02x%02x%02x\n",
+				search_ROM[0], search_ROM[1], search_ROM[2], search_ROM[3],
+				search_ROM[4], search_ROM[5], search_ROM[6], search_ROM[7]
+				);
+			#endif
+
+			if (rom_checksum_error(search_ROM)) {// Check the CRC
+				printf("failed crc\r\n");
+				return false;
+			}
+			rom_address_t address{};
+			for (byte_counter = 0; byte_counter < 8; byte_counter++) {
+				address.rom[byte_counter] = search_ROM[byte_counter];
+			}
+			found_addresses.push_back(address);
+			_last_device = _last_discrepancy == 0;
+			return true;
+		} else {
+			return false;
+		}
 	}
-	return return_value;
 }
 
 void One_wire::match_rom(rom_address_t &address) {

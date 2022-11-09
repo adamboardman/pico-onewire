@@ -180,6 +180,9 @@ private:
 	bool _power_polarity;
 	uint8_t ram[9]{};
 
+	int _last_discrepancy;	// search state
+	bool _last_device;  // search state
+
 	static uint8_t crc_byte(uint8_t crc, uint8_t byte);
 
 	static void bit_write(uint8_t &value, int bit, bool set);
