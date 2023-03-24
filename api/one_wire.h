@@ -178,6 +178,7 @@ private:
 	bool _parasite_power{};
 	bool _power_mosfet;
 	bool _power_polarity;
+	uint8_t _search_ROM[8] = {0, 0, 0, 0, 0, 0, 0, 0};
 	uint8_t ram[9]{};
 
 	int _last_discrepancy;	// search state
