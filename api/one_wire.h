@@ -141,6 +141,15 @@ public:
 	int convert_temperature(rom_address_t &address, bool wait, bool all);
 
 	/**
+	 * Changes the "endianness" of the unique device ID in supplied address
+	 * so that it can be conveniently printed out and manipulated as a number.
+	 *
+	 * @param address the address you received from OneWire::get_address(i).
+	 * @returns device ID as unsigned 64-bit integer.
+	 */
+	static uint64_t to_uint64(rom_address_t &address);
+
+	/**
 	 * This function will return the temperature measured by the specific device.
 	 *
 	 * @param convert_to_fahrenheit whether to convert the degC to Fahrenheit

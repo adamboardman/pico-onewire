@@ -58,6 +58,7 @@ int main() {
 A more complicated example to print all the available devices.
 Additionally pin 22 is used to exit the main loop and return to the USB Flashing mode.
 A push button switch between pins 28&29 (GND+GP22) will do nicely.
+Also we are converting the address to uint64 for future use.
 
 Add to the CMakeLists.txt in your project config:
 ```
@@ -87,9 +88,7 @@ int main() {
 		one_wire.convert_temperature(null_address, true, true);
 		for (int i = 0; i < count; i++) {
 			auto address = One_wire::get_address(i);
-			printf("Address: %02x%02x%02x%02x%02x%02x%02x%02x\r\n", address.rom[0], address.rom[1], address.rom[2],
-				   address.rom[3], address.rom[4], address.rom[5], address.rom[6], address.rom[7]);
-			printf("Temperature: %3.1foC\n", one_wire.temperature(address));
+			printf("%016llX\t%3.1f*C\r\n", One_wire::to_uint64(address), one_wire.temperature(address));
 		}
 		sleep_ms(1000);
 	}

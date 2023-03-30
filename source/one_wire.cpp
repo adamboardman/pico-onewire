@@ -395,6 +395,17 @@ void One_wire::write_scratch_pad(rom_address_t &address, int data) {
 	}
 }
 
+uint64_t One_wire::to_uint64(rom_address_t &address) {
+        return  ((uint64_t)address.rom[7])        |
+               (((uint64_t)address.rom[6]) << 8 ) |
+               (((uint64_t)address.rom[5]) << 16) |
+               (((uint64_t)address.rom[4]) << 24) |
+               (((uint64_t)address.rom[3]) << 32) |
+               (((uint64_t)address.rom[2]) << 40) |
+               (((uint64_t)address.rom[1]) << 48) |
+               (((uint64_t)address.rom[0]) << 56);
+}
+
 float One_wire::temperature(rom_address_t &address, bool convert_to_fahrenheit) {
 	float answer, remaining_count, count_per_degree;
 	int reading;
