@@ -20,8 +20,8 @@ std::vector<rom_address_t> found_addresses;
 One_wire::One_wire(uint data_pin, uint power_pin, bool power_polarity)
 		: _data_pin(data_pin),
 		  _parasite_pin(power_pin),
-		  _power_polarity(power_polarity),
-		  _power_mosfet(power_pin != not_controllable) {
+		  _power_mosfet(power_pin != not_controllable),
+		  _power_polarity(power_polarity) {
 }
 
 void One_wire::init() {
