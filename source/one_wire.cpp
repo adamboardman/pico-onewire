@@ -20,8 +20,8 @@ std::vector<rom_address_t> found_addresses;
 One_wire::One_wire(uint data_pin, uint power_pin, bool power_polarity)
 		: _data_pin(data_pin),
 		  _parasite_pin(power_pin),
-		  _power_polarity(power_polarity),
-		  _power_mosfet(power_pin != not_controllable) {
+		  _power_mosfet(power_pin != not_controllable),
+		  _power_polarity(power_polarity) {
 }
 
 void One_wire::init() {
@@ -157,7 +157,7 @@ bool One_wire::search_rom_find_next() {
 	uint8_t byte_counter, bit_mask;
 
 	if (!reset_check_for_device()) {
-		printf("Failed to reset one wire bus\n");
+		printf("OneW - Failed to reset one wire bus\n");
 		return false;
 	} else {
 		if (_last_device) {
@@ -174,7 +174,7 @@ bool One_wire::search_rom_find_next() {
 			if (bitA & bitB) {
 				discrepancy_marker = 0;// data read error, this should never happen
 				rom_bit_index = 0xFF;
-				printf("Data read error - no devices on bus?\r\n");
+				printf("OneW - Data read error - no devices on bus?\r\n");
 			} else {
 				if (bitA | bitB) {
 					// Set ROM bit to Bit_A
@@ -221,7 +221,7 @@ bool One_wire::search_rom_find_next() {
 			#endif
 
 			if (rom_checksum_error(_search_ROM)) {// Check the CRC
-				printf("failed crc\r\n");
+				printf("OneW - failed crc\r\n");
 				return false;
 			}
 			rom_address_t address{};
@@ -245,7 +245,7 @@ void One_wire::match_rom(rom_address_t &address) {
 			onewire_byte_out(address.rom[i]);
 		}
 	} else {
-		printf("match_rom failed\n");
+		printf("OneW -match_rom failed\n");
 	}
 }
 
@@ -253,7 +253,7 @@ void One_wire::skip_rom() {
 	if (reset_check_for_device()) {
 		onewire_byte_out(SkipROMCommand);
 	} else {
-		printf("skip_rom failed\n");
+		printf("OneW - skip_rom failed\n");
 	}
 }
 
@@ -434,7 +434,7 @@ float One_wire::temperature(rom_address_t &address, bool convert_to_fahrenheit) 
 								  (count_per_degree - remaining_count) / count_per_degree);
 				break;
 			default:
-				printf("Unsupported device family\n");
+				printf("OneW - Unsupported device family\n");
 				break;
 		}
 
